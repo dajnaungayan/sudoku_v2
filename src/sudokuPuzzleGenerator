@@ -1,0 +1,13 @@
+const initPuzzle = '10';
+
+// function initPuzzle()
+// {
+//     console.log( '5' );
+// }
+
+// function sudokuPuzzleGenerator()
+// {
+//     console.log('you are here');
+// }
+
+export default initPuzzle;
