@@ -177,6 +177,12 @@ document.addEventListener('keypress', (event) => {
         return;
     }
     else{
+
+      if(editingCell === null)
+      {
+        return;
+      }
+      
       let ruleBreak = false;
       editingCell.innerHTML = ''; 
 
