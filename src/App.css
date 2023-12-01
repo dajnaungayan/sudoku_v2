@@ -15,8 +15,9 @@
   --accent-color1: #000000;
   --accent-color2: #dad1d1;
   --accent-color3: #f6b167;
-  --accent-color4: #f07900;
+  --accent-color4: #f07800,;
   --accent-color5: #d35100;
+  --accent-row-column-highlight: rgb(253, 202, 148);
 }
 
 .App {
