@@ -162,96 +162,199 @@ function numPick() {
   );
 }
 
+
 // Add event listener on keypress
-document.addEventListener('keypress', (event) => {
+document.addEventListener('keydown', (event) => {
   let name = event.key;
-  let keyID = event.code
-    if (keyID < 48 || keyID > 57 ) {
-        /*
-         * If it isn't a number, pretend the key was never pressed at all. This
-         * key range works for both the number pad and the numbers on the top of
-         * the keyboard. I've tested this on IE, Firefox, and Chrome to verify
-         * it works on the latest version. However, I need this to work on Firefox v.31.
-         */
-        event.preventDefault();
-        return;
+  let keyID = event.code;
+
+  if(keyID.includes('Arrow'))
+  {
+    let finalFocusColor = focusColor;
+
+    if(editingCell === null)
+    {
+      return;
     }
-    else{
+    let boardNumber = parseInt(editingCell.id.substring(6));
+    let originalBoardNumber = boardNumber;
+    let startForColumn = boardNumber % boardSize;
 
-      if(editingCell === null)
+    if(Object.is(name, 'ArrowLeft'))
+    {
+      if(!(boardNumber%boardSize === 0))
       {
-        return;
+        boardNumber--;
+        editingCell = document.getElementById('board-' + boardNumber.toString());
+        startForColumn = boardNumber % boardSize;
+        refreshCellBackgrounds();
       }
-      
-      let ruleBreak = false;
-      editingCell.innerHTML = ''; 
+    }
 
-      let boardNumber = parseInt(editingCell.id.substring(6));
-      let startForColumn = boardNumber % boardSize;
-      
-      for(; startForColumn < (boardSize * boardSize); )
+    else if(Object.is(name, 'ArrowRight'))
+    {
+      if(!(boardNumber%boardSize === (boardSize-1) ))
       {
-        let columnFocus = document.getElementById('board-' + startForColumn.toString() );
-        if(columnFocus.innerHTML === name)
+        boardNumber++;
+        editingCell = document.getElementById('board-' + boardNumber.toString());
+        startForColumn = boardNumber % boardSize;
+        refreshCellBackgrounds();
+      }
+    }
+
+    else if(Object.is(name, 'ArrowUp'))
+    {
+      if(!(boardNumber-boardSize < 0))
+      {
+        boardNumber = boardNumber - boardSize;
+        editingCell = document.getElementById('board-' + boardNumber.toString());
+        startForColumn = boardNumber % boardSize;
+        refreshCellBackgrounds();
+      }
+    }
+
+    else if(Object.is(name, 'ArrowDown'))
+    {
+      if( !(boardNumber+boardSize > ((boardSize*boardSize) - 1) ) )
+      {
+        boardNumber = boardNumber + boardSize;
+        editingCell = document.getElementById('board-' + boardNumber.toString());
+        startForColumn = boardNumber % boardSize;
+        refreshCellBackgrounds();
+      }
+    }
+    
+    for(; startForColumn < (boardSize * boardSize); )
+    {
+      let columnFocus = document.getElementById('board-' + startForColumn.toString() );
+      columnFocus.animate({
+        background: `${finalFocusColor}`
+      }, { duration: 200, fill: 'forwards'})
+      startForColumn = startForColumn + 9;
+    }
+
+    let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
+    for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
+    {
+      let rowFocus = document.getElementById('board-' + startForRow.toString() );
+      rowFocus.animate({
+        background: `${finalFocusColor}`
+      }, { duration: 200, fill: 'forwards'})
+      startForRow++;
+    }
+
+    let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
+    let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
+
+    for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
+    {
+      for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
+      {
+        let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
+        boxFocus.animate({
+          background: `${finalFocusColor}`
+        }, { duration: 200, fill: 'forwards'});
+      }
+      BoxColumnStart = BoxColumnStart + boardSize;
+    }
+  }
+
+  else if (keyID.includes('Numpad') || keyID.includes('Digit')) {
+    
+    if(editingCell === null)
+    {
+      return;
+    }
+    
+    if(editingCell.className.includes('Filled')){
+      return;
+    }
+
+    let ruleBreak = false;
+    editingCell.innerHTML = ''; 
+
+    let boardNumber = parseInt(editingCell.id.substring(6));
+    let startForColumn = boardNumber % boardSize;
+    
+    for(; startForColumn < (boardSize * boardSize); )
+    {
+      let columnFocus = document.getElementById('board-' + startForColumn.toString() );
+      if(columnFocus.innerHTML === name)
+      {
+        ruleBreak = true;
+        break;
+      }
+      startForColumn = startForColumn + 9;
+    }
+
+    let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
+    for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
+    {
+      let rowFocus = document.getElementById('board-' + startForRow.toString() );
+      if(rowFocus.innerHTML === name)
+      {
+        ruleBreak = true;
+        break;
+      }
+      startForRow++;
+    }
+
+    let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
+    let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
+
+    for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
+    {
+      for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
+      {
+        let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
+        if(boxFocus.innerHTML === name)
         {
           ruleBreak = true;
           break;
         }
-        startForColumn = startForColumn + 9;
       }
-
-      let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
-      for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
-      {
-        let rowFocus = document.getElementById('board-' + startForRow.toString() );
-        if(rowFocus.innerHTML === name)
-        {
-          ruleBreak = true;
-          break;
-        }
-        startForRow++;
-      }
-
-      let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
-      let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
-
-      for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
-      {
-        for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
-        {
-          let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
-          if(boxFocus.innerHTML === name)
-          {
-            ruleBreak = true;
-            break;
-          }
-        }
-        BoxColumnStart = BoxColumnStart + boardSize;
-      }
-
-      if(isCandidate)
-      {
-        editingCell.style.color = 'var(--acc-color4)';
-      }
-      else if(ruleBreak)
-      {
-        editingCell.style.color = 'red';
-      }
-      else if(editingCell === null)
-      {
-        return;
-      }
-      else
-      {
-        editingCell.style.color = 'black';
-      }
-      editingCell.innerHTML = name;  
-
-      if(isPuzzleFinished(ruleBreak))
-      {
-        console.log('tada!!');
-      }
+      BoxColumnStart = BoxColumnStart + boardSize;
     }
+
+    if(isCandidate)
+    {
+      editingCell.style.color = 'var(--acc-color4)';
+    }
+    else if(ruleBreak)
+    {
+      editingCell.style.color = 'red';
+    }
+    else if(editingCell === null)
+    {
+      return;
+    }
+    else
+    {
+      editingCell.style.color = 'black';
+    }
+
+    if(Object.is(name, '0'))
+    {
+      editingCell.innerHTML = '';
+    }
+    else
+    {
+      editingCell.innerHTML = name;
+    }
+
+    if(isPuzzleFinished(ruleBreak))
+    {
+      console.log('tada!!');
+    }
+  }
+  else if(Object.is(keyID, 'Backspace'))
+  {
+    editingCell.innerHTML = '';
+  }
+
+  else{
+    return;
+  }
 }, false);
 
 window.onmousedown = function (e)
