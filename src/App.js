@@ -6,6 +6,8 @@ import './numPick.css';
 const focusColorOnly = 'rgb(253, 202, 148)'; 
 const focusColor = focusColorOnly + ' none repeat scroll 0% 0% / auto padding-box border-box';
 
+let startTime = 0;
+let currentTime = 0;
 let boardSize = 9;
 let pickFromPuzzles = [];
 
@@ -62,6 +64,7 @@ function App() {
     { className: "App" },
     createElement(createLevelChooser, {className: 'levelChooseContainer'}),
     createElement(divPuzzle, {className: 'divPuzzle'}),
+    createElement( congratulatory, {className: 'congratulations'})
   );
 }
 
@@ -91,9 +94,28 @@ function divPuzzle(){
     { className: 'divPuzzle'},
     null,
     createElement( numPick, {className: 'numPick-container'}),
-    createElement( sudokuComponents, { className: 'Sudoku'}),
-
+    createElement( sudokuComponents, { className: 'Sudoku', id: 'sudoku-1'}),
   );
+}
+
+function congratulatory() {
+  return createElement(
+    'div',
+    {
+      className: 'congratulations',
+    },
+    null,
+    createElement('div', {
+      className: 'congrats',
+    },
+    'Congratulations! Total time is:'
+    ),
+    createElement('div', {
+      className: 'time'
+    },
+    '00:00'
+    )
+  )
 }
 
 function sudokuComponents() {
@@ -118,20 +140,21 @@ function sudokuComponents() {
   return createElement(
     'div',
     { 
-      className: 'Sudoku'
+      className: 'Sudoku',
+      id: 'sudoku-1'
     },
     components,
     createElement('div',  { 
-      className: 'vertical-1'
+      className: 'thick-grid vertical-1'
     }),
     createElement('div',  { 
-      className: 'vertical-2'
+      className: 'thick-grid vertical-2'
     }),
     createElement('div',  { 
-      className: 'horizontal-1'
+      className: 'thick-grid horizontal-1'
     }),
     createElement('div',  { 
-      className: 'horizontal-2'
+      className: 'thick-grid horizontal-2'
     }),
   );
 
@@ -162,6 +185,101 @@ function numPick() {
   );
 }
 
+function populateCell(name)
+{
+  let ruleBreak = false;
+  editingCell.innerHTML = ''; 
+
+  let boardNumber = parseInt(editingCell.id.substring(6));
+  let startForColumn = boardNumber % boardSize;
+  
+  for(; startForColumn < (boardSize * boardSize); )
+  {
+    let columnFocus = document.getElementById('board-' + startForColumn.toString() );
+    if(columnFocus.innerHTML === name)
+    {
+      columnFocus.style.color = 'red';
+      ruleBreak = ruleBreak || true;
+    }
+    else
+    {
+      columnFocus.style.color = 'black';
+      ruleBreak = ruleBreak || false;
+    }
+    startForColumn = startForColumn + 9;
+  }
+
+  let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
+  for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
+  {
+    let rowFocus = document.getElementById('board-' + startForRow.toString() );
+    if(rowFocus.innerHTML === name)
+    {
+      rowFocus.style.color = 'red';
+      ruleBreak = ruleBreak || true;
+    }
+    else
+    {
+      rowFocus.style.color = 'black';
+      ruleBreak = ruleBreak || false;
+    }
+    startForRow++;
+  }
+
+  let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
+  let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
+
+  for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
+  {
+    for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
+    {
+      let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
+      if(boxFocus.innerHTML === name)
+      {
+        boxFocus.style.color = 'red';
+        ruleBreak = ruleBreak || true;
+      }
+      else
+      {
+        boxFocus.style.color = 'black';
+        ruleBreak = ruleBreak || false;
+      }
+    }
+    BoxColumnStart = BoxColumnStart + boardSize;
+  }
+
+  if(isCandidate)
+  {
+    editingCell.style.color = 'var(--acc-color4)';
+  }
+  else if(ruleBreak)
+  {
+    editingCell.style.color = 'red';
+  }
+  else if(editingCell === null)
+  {
+    return;
+  }
+  else
+  {
+    editingCell.style.color = 'black';
+  }
+
+  if(Object.is(name, '0'))
+  {
+    editingCell.innerHTML = '';
+  }
+  else
+  {
+    editingCell.innerHTML = name;
+  }
+
+  // congratulate();
+  if(isPuzzleFinished(ruleBreak))
+  {
+    setTimeout(congratulate, 400);
+  }
+}
 
 // Add event listener on keypress
 document.addEventListener('keydown', (event) => {
@@ -257,9 +375,28 @@ document.addEventListener('keydown', (event) => {
       }
       BoxColumnStart = BoxColumnStart + boardSize;
     }
+
+    if(!editingCell.className.includes('Filled'))
+    {
+      editingCell.animate({
+        // background: 'var(--accent-color4)'
+        borderRadius: '40%'
+      }, { duration: 100, fill: 'forwards'})
+    }
   }
 
-  else if (keyID.includes('Numpad') || keyID.includes('Digit')) {
+  // else if ((keyID >= 48 && keyID <= 57) || (keyID >= 96 && keyID <= 105)) { 
+  else if (name.includes('0') || 
+            name.includes('1') ||
+            name.includes('2') ||
+            name.includes('3') ||
+            name.includes('4') ||
+            name.includes('5') ||
+            name.includes('6') ||
+            name.includes('7') ||
+            name.includes('8') ||
+            name.includes('9') )
+  {
     
     if(editingCell === null)
     {
@@ -270,84 +407,9 @@ document.addEventListener('keydown', (event) => {
       return;
     }
 
-    let ruleBreak = false;
-    editingCell.innerHTML = ''; 
-
-    let boardNumber = parseInt(editingCell.id.substring(6));
-    let startForColumn = boardNumber % boardSize;
-    
-    for(; startForColumn < (boardSize * boardSize); )
-    {
-      let columnFocus = document.getElementById('board-' + startForColumn.toString() );
-      if(columnFocus.innerHTML === name)
-      {
-        ruleBreak = true;
-        break;
-      }
-      startForColumn = startForColumn + 9;
-    }
-
-    let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
-    for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
-    {
-      let rowFocus = document.getElementById('board-' + startForRow.toString() );
-      if(rowFocus.innerHTML === name)
-      {
-        ruleBreak = true;
-        break;
-      }
-      startForRow++;
-    }
-
-    let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
-    let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
-
-    for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
-    {
-      for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
-      {
-        let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
-        if(boxFocus.innerHTML === name)
-        {
-          ruleBreak = true;
-          break;
-        }
-      }
-      BoxColumnStart = BoxColumnStart + boardSize;
-    }
-
-    if(isCandidate)
-    {
-      editingCell.style.color = 'var(--acc-color4)';
-    }
-    else if(ruleBreak)
-    {
-      editingCell.style.color = 'red';
-    }
-    else if(editingCell === null)
-    {
-      return;
-    }
-    else
-    {
-      editingCell.style.color = 'black';
-    }
-
-    if(Object.is(name, '0'))
-    {
-      editingCell.innerHTML = '';
-    }
-    else
-    {
-      editingCell.innerHTML = name;
-    }
-
-    if(isPuzzleFinished(ruleBreak))
-    {
-      console.log('tada!!');
-    }
+    populateCell(name);
   }
-  else if(Object.is(keyID, 'Backspace'))
+  else if(Object.is(keyID, 'Backspace') && (editingCell !== null) && !(editingCell.className.includes('Filled')))
   {
     editingCell.innerHTML = '';
   }
@@ -393,74 +455,75 @@ window.onmousedown = function (e)
       editingCell.innerHTML = '';  
     }
     else{
-      let ruleBreak = false;
-      editingCell.innerHTML = ''; 
+    //   let ruleBreak = false;
+    //   editingCell.innerHTML = ''; 
 
-      let boardNumber = parseInt(editingCell.id.substring(6));
-      let startForColumn = boardNumber % boardSize;
+    //   let boardNumber = parseInt(editingCell.id.substring(6));
+    //   let startForColumn = boardNumber % boardSize;
       
-      for(; startForColumn < (boardSize * boardSize); )
-      {
-        let columnFocus = document.getElementById('board-' + startForColumn.toString() );
-        if(columnFocus.innerHTML === element.innerHTML)
-        {
-          ruleBreak = true;
-          break;
-        }
-        startForColumn = startForColumn + 9;
-      }
+    //   for(; startForColumn < (boardSize * boardSize); )
+    //   {
+    //     let columnFocus = document.getElementById('board-' + startForColumn.toString() );
+    //     if(columnFocus.innerHTML === element.innerHTML)
+    //     {
+    //       ruleBreak = true;
+    //       break;
+    //     }
+    //     startForColumn = startForColumn + 9;
+    //   }
 
-      let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
-      for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
-      {
-        let rowFocus = document.getElementById('board-' + startForRow.toString() );
-        if(rowFocus.innerHTML === element.innerHTML)
-        {
-          ruleBreak = true;
-          break;
-        }
-        startForRow++;
-      }
+    //   let startForRow = Math.floor(boardNumber/boardSize) * boardSize;
+    //   for( let rowCounter = 0; rowCounter < boardSize; rowCounter++ )
+    //   {
+    //     let rowFocus = document.getElementById('board-' + startForRow.toString() );
+    //     if(rowFocus.innerHTML === element.innerHTML)
+    //     {
+    //       ruleBreak = true;
+    //       break;
+    //     }
+    //     startForRow++;
+    //   }
 
-      let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
-      let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
+    //   let BoxRowStart = (Math.floor(boardNumber/Math.sqrt(boardSize) ) * Math.sqrt(boardSize)) % boardSize;
+    //   let BoxColumnStart = Math.floor(boardNumber/(boardSize * Math.sqrt(boardSize))) * (boardSize * Math.sqrt(boardSize));
 
-      for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
-      {
-        for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
-        {
-          let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
-          if(boxFocus.innerHTML === element.innerHTML)
-          {
-            ruleBreak = true;
-            break;
-          }
-        }
-        BoxColumnStart = BoxColumnStart + boardSize;
-      }
+    //   for( let boxCounter1 = 0; boxCounter1 < Math.sqrt(boardSize) ; boxCounter1++ )
+    //   {
+    //     for( let boxCounter2 = 0; boxCounter2 < Math.sqrt(boardSize) ; boxCounter2++ )
+    //     {
+    //       let boxFocus = document.getElementById('board-' + (BoxRowStart + BoxColumnStart + boxCounter2).toString() );
+    //       if(boxFocus.innerHTML === element.innerHTML)
+    //       {
+    //         ruleBreak = true;
+    //         break;
+    //       }
+    //     }
+    //     BoxColumnStart = BoxColumnStart + boardSize;
+    //   }
 
-      if(isCandidate)
-      {
-        editingCell.style.color = 'var(--acc-color4)';
-      }
-      else if(ruleBreak)
-      {
-        editingCell.style.color = 'red';
-      }
-      else if(editingCell === null)
-      {
-        return;
-      }
-      else
-      {
-        editingCell.style.color = 'black';
-      }
-      editingCell.innerHTML = element.innerHTML;  
+    //   if(isCandidate)
+    //   {
+    //     editingCell.style.color = 'var(--acc-color4)';
+    //   }
+    //   else if(ruleBreak)
+    //   {
+    //     editingCell.style.color = 'red';
+    //   }
+    //   else if(editingCell === null)
+    //   {
+    //     return;
+    //   }
+    //   else
+    //   {
+    //     editingCell.style.color = 'black';
+    //   }
+    //   editingCell.innerHTML = element.innerHTML;  
 
-      if(isPuzzleFinished(ruleBreak))
-      {
-        console.log('tada!!');
-      }
+    //   if(isPuzzleFinished(ruleBreak))
+    //   {
+    //     console.log('tada!!');
+    //   }
+      populateCell(element.innerHTML);
     }
     return;
   }
@@ -530,6 +593,75 @@ window.onmouseover = function (e)
 
 }
 
+function congratulate()
+{
+  const sudokuPuzzle = document.getElementById('sudoku-1');
+  sudokuPuzzle.style.overflow = 'visible';
+
+  let congrats = document.getElementsByClassName("congratulations");
+  let numPickdiv = document.getElementsByClassName("numPick-container");
+  let allCells = document.getElementsByClassName("Cell");
+  let initRandomChoice = [];
+  let thickGrids = document.getElementsByClassName("thick-grid");
+
+  for( let thickGridCounter = 0; thickGridCounter < thickGrids.length; thickGridCounter++ )
+  {
+    thickGrids[thickGridCounter].animate({
+      visibility: 'hidden'
+    }, {duration: 1, fill: 'forwards'}) ;
+  }
+
+  const endDate = new Date();
+  currentTime = endDate.getTime();
+  let timeDiff = currentTime - startTime;
+  let thisTime = document.getElementsByClassName('time');
+
+  let seconds = Math.floor(timeDiff / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+
+  seconds = seconds % 60;
+  minutes = minutes % 60;
+  hours = hours % 24;
+
+  thisTime[0].innerHTML = padTo2Digits(hours)+ ":" +padTo2Digits(minutes)+ ":" +padTo2Digits(seconds);
+
+  congrats[0].animate({
+    visibility: 'visible'
+  }, {duration: 1000, fill: 'forwards'})
+
+  for(let initChoice = 0; initChoice < (boardSize*boardSize); initChoice++)
+  {
+    initRandomChoice.push(initChoice);
+  }
+
+  for(let cellCounter = ((boardSize*boardSize)); cellCounter > 0; cellCounter-- )
+  {
+    var randomIndex = initRandomChoice[Math.floor(Math.random()* initRandomChoice.length)];
+    var rect = allCells[parseInt(randomIndex)].getBoundingClientRect();
+    var mathRandom = Math.random() * (500) + (500);
+    var randomScale = (mathRandom);
+    allCells[randomIndex].animate({
+      transform: `translateY(${1000 + rect.top}px)`,
+      scale: `${randomScale}%`,
+    }, {duration: (Math.random() * 1000 + 500), fill: 'forwards', easing: 'ease-in'})
+
+    let index = initRandomChoice.indexOf(randomIndex);
+    if( index > -1 )
+    {
+      initRandomChoice.splice(index, 1);
+    }
+  }
+
+  numPickdiv[0].animate({
+    visibility: 'hidden'
+  }, {duration: 200, fill: 'forwards'})
+}
+
+function padTo2Digits(num) {
+  return num.toString().padStart(2, '0');
+}
+
 function isPuzzleFinished(ruleBreak)
 {
   if(ruleBreak)
@@ -572,11 +704,6 @@ function focusCell(element)
   let initialColor = 'var(--accent-color3)';
   let style = getComputedStyle(element);
 
-  // if( Object.is(style.background, focusColor) )
-  // {
-  //   finalFocusColor = initialColor;
-  // }
-
   let boardNumber = parseInt(element.id.substring(6));
   let startForColumn = boardNumber % boardSize;
   
@@ -615,6 +742,10 @@ function focusCell(element)
   }
 
   editingCell = element;
+  editingCell.animate({
+    // background: 'var(--accent-color4)'
+    borderRadius: '40%'
+  }, { duration: 200, fill: 'forwards'})
 }
 
 function unfocusCell(element)
@@ -634,7 +765,8 @@ function refreshCellBackgrounds() {
   for(let i = 0; i < allCells.length; i++ )
   {
     allCells[i].animate({
-      background: 'var(--accent-color3)'
+      background: 'var(--accent-color3)',
+      borderRadius: '5%'
     }, { duration: 100, fill: 'forwards'})
   }
 }
@@ -705,6 +837,9 @@ function initializePuzzle(element)
   puzzle[0].animate({
     opacity: '100%'
   }, {duration: 1200, fill: 'forwards'});
+
+  const currentDate = new Date();
+  startTime = currentDate.getTime();
 }
 
 function initializeSudokuComponents() {

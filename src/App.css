@@ -15,7 +15,7 @@
   --accent-color1: #000000;
   --accent-color2: #dad1d1;
   --accent-color3: #f6b167;
-  --accent-color4: #f07800,;
+  --accent-color4: #f07800;
   --accent-color5: #d35100;
   --accent-row-column-highlight: rgb(253, 202, 148);
 }
@@ -61,10 +61,13 @@
   border-radius: 5%;
   
   box-shadow: 0px 0px 0px 1vh var(--accent-color1);
-  overflow: hidden;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+}
+
+#sudoku-1 {
+  overflow: hidden;
 }
 
 .Cell
@@ -85,7 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
+  /* margin: auto; */
 }
 
 .CellValue {
@@ -95,7 +98,7 @@
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  margin: auto;
+  /* margin: auto; */
   content: "";
 }
 
@@ -143,6 +146,10 @@
   border: 3px solid var(--accent-color1);
 }
 
+.thick-grid {
+  visibility: visible;
+}
+
 .levelChooseContainer {
   width: 100%;
   height: 100%;
@@ -164,4 +171,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.congratulations {
+  max-width: 90%;
+  height: 100%;
+  
+  position: absolute;
+  /* overflow: hidden; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* justify-content: center; */
+
+  visibility: hidden;
+}
+
+.congrats {
+  font-size: x-large;
+  color: white;
+  margin-top: 50%;
+  /* margin: auto;
+  position: relative; */
+}
+
+.time {
+  font-size: xx-large;
+  color: white;
+  /* margin: auto;
+  position: relative; */
 }
