@@ -379,10 +379,12 @@ document.addEventListener('keydown', (event) => {
     if(!editingCell.className.includes('Filled'))
     {
       editingCell.animate({
-        // background: 'var(--accent-color4)'
-        borderRadius: '40%'
+        borderRadius: '40%',
       }, { duration: 100, fill: 'forwards'})
     }
+    editingCell.animate({
+      background: 'var(--accent-color5)',
+    }, { duration: 100, fill: 'forwards'})
   }
 
   // else if ((keyID >= 48 && keyID <= 57) || (keyID >= 96 && keyID <= 105)) { 
@@ -743,7 +745,7 @@ function focusCell(element)
 
   editingCell = element;
   editingCell.animate({
-    // background: 'var(--accent-color4)'
+    background: 'var(--accent-color5)',
     borderRadius: '40%'
   }, { duration: 200, fill: 'forwards'})
 }
